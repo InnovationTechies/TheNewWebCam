@@ -1,31 +1,371 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Index";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+
+
+<h2>Camera Functionality</h2>
+
+
+
+<table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center"><u>Live Camera</u></td>
+        <td></td>
+        <td align="center"><u>Captured Picture</u></td>
+        <td></td>
+        <td align="center"><u>Live Video</u></td>
+        <td></td>
+        <td align="center"><u>Recorded Video</u></td>
+    </tr>
+    <tr>
+        <td><div id="Camera"></div></td>
+        <td>&nbsp;</td>
+        <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
+        <td>&nbsp;</td>
+        <td><video id="gum" autoplay></video></td>
+        <td>&nbsp;</td>
+        <td><video id="recorded" loop controls></video>
+    </tr>
+</table>
+
+<input type="button" value="Capture" onclick="webcam.capture();" />
+
+<div>
+    <button id="request"> Request Camera </button>
+
+    <button id="record" disabled>Start Recording</button>
+
+    <button id="play" disabled>Play</button>
+
+    <button id="download" disabled>Download</button>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+
+
+
+@section scripts
+{
+
+    <script src="js/main.js"></script>
+
+    <script src="@Url.Content("~/Scripts/jquery.webcam.js")">
+    </script>
+
+    <!-- Camera -->
+    <script>
+            $("#Camera").webcam({
+                 width: 320,
+                 height: 240,
+                 mode: "save",
+                 swffile: "@Url.Content("~/Scripts/jscam.swf")",
+                 onTick: function () { },
+                onSave: function (data, ab) {
+                    $.ajax({
+                        type: "POST",
+                        url: '~/Photo/GetCapture',
+                        data: '',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "text",
+                        success: function (r) {
+                            $("#imgCapture").css("visibility", "visible");
+                            $("#imgCapture").attr("src", r);
+                        },
+                        failure: function (response) {
+                            alert(response.d);
+                        }
+                    })
+                },
+                 onCapture: function () {
+                     webcam.save("@Url.Content("~/Photo/Capture")/");
+                 },
+                 debug: function () { },
+                 onLoad: function () { }
+             });
+    </script>
+
+
+
+
+    <!-- Video -->
+    <script>
+        var mediaSource = new MediaSource();
+
+        mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
+
+        var mediaRecorder;
+
+        var recordedBlobs;
+
+        var sourceBuffer;
+
+
+
+        var gumVideo = document.querySelector('video#gum');
+
+        var recordedVideo = document.querySelector('video#recorded');
+
+
+
+        var recordButton = document.querySelector('button#record');
+
+        var playButton = document.querySelector('button#play');
+
+        var downloadButton = document.querySelector('button#download');
+
+        recordButton.onclick = toggleRecording;
+
+        playButton.onclick = play;
+
+        downloadButton.onclick = download;
+
+
+
+        // window.isSecureContext could be used for Chrome
+
+        var isSecureOrigin = location.protocol === 'https:' ||
+
+            location.hostname === 'localhost';
+
+        if (!isSecureOrigin) {
+
+            alert('getUserMedia() must be run from a secure origin: HTTPS or localhost.' +
+
+                '\n\nChanging protocol to HTTPS');
+
+            location.protocol = 'HTTPS';
+        }
+
+
+
+        var constraints = {
+
+            audio: true,
+
+            video: true
+        };
+
+
+
+        function handleSuccess(stream) {
+
+            recordButton.disabled = false;
+
+            console.log('getUserMedia() got stream: ', stream);
+
+            window.stream = stream;
+
+            gumVideo.srcObject = stream;
+        }
+
+
+
+        function handleError(error) {
+
+            console.log('navigator.getUserMedia error: ', error);
+        }
+
+
+
+        navigator.mediaDevices.getUserMedia(constraints).
+
+            then(handleSuccess).catch(handleError);
+
+
+
+        function handleSourceOpen(event) {
+
+            console.log('MediaSource opened');
+
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+
+            console.log('Source buffer: ', sourceBuffer);
+        }
+
+
+
+        recordedVideo.addEventListener('error', function (ev) {
+
+            console.error('MediaRecording.recordedMedia.error()');
+
+            alert('Your browser can not play\n\n' + recordedVideo.src
+
+                + '\n\n media clip. event: ' + JSON.stringify(ev));
+
+        }, true);
+
+
+
+        function handleDataAvailable(event) {
+
+            if (event.data && event.data.size > 0) {
+
+                recordedBlobs.push(event.data);
+            }
+        }
+
+
+
+        function handleStop(event) {
+
+            console.log('Recorder stopped: ', event);
+        }
+
+
+
+        function toggleRecording() {
+
+            if (recordButton.textContent === 'Start Recording') {
+
+                startRecording();
+
+            } else {
+
+                stopRecording();
+
+                recordButton.textContent = 'Start Recording';
+
+                playButton.disabled = false;
+
+                downloadButton.disabled = false;
+            }
+        }
+
+
+
+        function startRecording() {
+
+            recordedBlobs = [];
+
+            var options = { mimeType: 'video/webm;codecs=vp9' };
+
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                console.log(options.mimeType + ' is not Supported');
+
+                options = { mimeType: 'video/webm;codecs=vp8' };
+
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                    console.log(options.mimeType + ' is not Supported');
+
+                    options = { mimeType: 'video/webm' };
+
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                        console.log(options.mimeType + ' is not Supported');
+
+                        options = { mimeType: '' };
+                    }
+                }
+            }
+
+            try {
+
+                mediaRecorder = new MediaRecorder(window.stream, options);
+
+            } catch (e) {
+
+                console.error('Exception while creating MediaRecorder: ' + e);
+
+                alert('Exception while creating MediaRecorder: '
+
+                    + e + '. mimeType: ' + options.mimeType);
+
+                return;
+            }
+
+            console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+
+            recordButton.textContent = 'Stop Recording';
+
+            playButton.disabled = true;
+
+            downloadButton.disabled = true;
+
+            mediaRecorder.onstop = handleStop;
+
+            mediaRecorder.ondataavailable = handleDataAvailable;
+
+            mediaRecorder.start(10); // collect 10ms of data
+
+            console.log('MediaRecorder started', mediaRecorder);
+        }
+
+
+
+        function stopRecording() {
+
+            mediaRecorder.stop();
+
+            console.log('Recorded Blobs: ', recordedBlobs);
+
+            recordedVideo.controls = true;
+        }
+
+
+
+        function play() {
+
+            var superBuffer = new Blob(recordedBlobs, { type: 'video/webm' });
+
+            recordedVideo.src = window.URL.createObjectURL(superBuffer);
+
+            // workaround for non-seekable video taken from
+
+            // https://bugs.chromium.org/p/chromium/issues/detail?id=642012#c23
+
+            recordedVideo.addEventListener('loadedmetadata', function () {
+
+                if (recordedVideo.duration === Infinity) {
+
+                    recordedVideo.currentTime = 1e101;
+
+                    recordedVideo.ontimeupdate = function () {
+
+                        recordedVideo.currentTime = 0;
+
+                        recordedVideo.ontimeupdate = function () {
+
+                            delete recordedVideo.ontimeupdate;
+
+                            recordedVideo.play();
+                        };
+                    };
+                }
+
+            });
+        }
+
+
+
+        function download() {
+
+            var blob = new Blob(recordedBlobs, { type: 'video/webm' });
+
+            var url = window.URL.createObjectURL(blob);
+
+            var a = document.createElement('a');
+
+            a.style.display = 'none';
+
+            a.href = url;
+
+            a.download = 'test.webm';
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            setTimeout(function () {
+
+                document.body.removeChild(a);
+
+                window.URL.revokeObjectURL(url);
+
+            }, 100);
+
+        }
+    </script>
+}
+
