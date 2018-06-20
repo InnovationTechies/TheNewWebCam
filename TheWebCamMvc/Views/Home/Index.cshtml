@@ -6,40 +6,56 @@
 
 <h2>Camera Functionality</h2>
 
+<form id="theForm" method="get" action="">
+    
+    <fieldset>
+        <legend></legend>
+        <div>
+            <table border="0" cellpadding="0" cellspacing="0" class="table table-striped table-responsive">
+                <tr>
+                    <td align="center"><u>Live Camera</u></td>
+                    <td></td>
+                    <td align="center"><u>Captured Picture</u></td>
+                    <td></td>
+                    <td align="center"><u>Live Video</u></td>
+                    <td></td>
+                    <td align="center"><u>Recorded Video</u></td>
+                </tr>
+                <tr>
+                    <td><div id="Camera"></div></td>
+                    <td>&nbsp;</td>
+                    <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
+                    <td>&nbsp;</td>
+                    <td><video id="gum" autoplay></video></td>
+                    <td>&nbsp;</td>
+                    <td><video id="recorded" loop controls></video>
+                </tr>
+            </table>
 
 
-<table border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td align="center"><u>Live Camera</u></td>
-        <td></td>
-        <td align="center"><u>Captured Picture</u></td>
-        <td></td>
-        <td align="center"><u>Live Video</u></td>
-        <td></td>
-        <td align="center"><u>Recorded Video</u></td>
-    </tr>
-    <tr>
-        <td><div id="Camera"></div></td>
-        <td>&nbsp;</td>
-        <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
-        <td>&nbsp;</td>
-        <td><video id="gum" autoplay></video></td>
-        <td>&nbsp;</td>
-        <td><video id="recorded" loop controls></video>
-    </tr>
-</table>
+            @using (Html.BeginForm("Capture", "HomeController", FormMethod.Post, new { id = "FormId" }))
+            {
+                <input type="button" id="btnCapture" value="Capture" class="btn-default btn- primary"/>
+            }
 
-<input type="button" value="Capture" onclick="webcam.capture();" />
+        </div>
+    </fieldset>
+</form>
 
-<div>
-    <button id="request"> Request Camera </button>
 
-    <button id="record" disabled>Start Recording</button>
 
-    <button id="play" disabled>Play</button>
+<input type="submit" value="Capture" onclick="" class="btn-default btn- primary" />
+@*webcam.capture();*@
+<div class="row ">
+    <button id="request" class="btn-default active btn-primary"> Request Camera </button>
 
-    <button id="download" disabled>Download</button>
+    <button id="record" class="btn-default">Start Recording</button>
+
+    <button id="play" class="btn-default">Play</button>
+
+    <button id="download" class="btn-default">Download</button>
 </div>
+
 
 
 
