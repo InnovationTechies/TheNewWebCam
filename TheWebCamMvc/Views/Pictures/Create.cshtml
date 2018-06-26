@@ -1,0 +1,436 @@
+﻿@model TheWebCamMvc.Picture
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+<form id="theForm" method="get" action="" class="form-horizontal">
+
+    <fieldset>
+        <legend></legend>
+        <div>
+            <table border="0" cellpadding="0" cellspacing="0" class="table table-striped table-responsive">
+                <tr>
+                    @*<td align="center"><u>Live Camera</u></td>
+                        <td></td>*@
+                    <td align="center"><u>Captured Picture</u></td>
+                    <td></td>
+                    <td align="center"><u>Live Video</u></td>
+                    @*<td></td>
+                        <td align="center"><u>Recorded Video</u></td>*@
+                </tr>
+                <tr>
+                    @*<td><div id="Camera"></div></td>
+                        <td>&nbsp;</td>*@
+                    <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
+                    <td>&nbsp;</td>
+                    <td><video id="gum" autoplay></video></td>
+                    <td>&nbsp;</td>
+                    @*<td><video id="recorded" loop controls></video>*@
+                </tr>
+            </table>
+
+
+
+
+        </div>
+    </fieldset>
+
+
+
+    @*<div class="form-group">
+        <div>
+
+        </div>
+        <input id="request" type="submit" class="btn-default active btn-primary"> Request Camera </input>
+
+        <input id="record" type="submit" class="btn-default">Start Recording</input>
+
+        <input id="play" type="submit" class="btn-default">Play</input>
+
+        <input id="download" type="submit" class="btn-default">Download</input>
+    </div>*@
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Capture" id="request" class="btn btn-primary" />
+        </div>
+    </div>
+
+</form>
+
+
+
+
+
+
+
+
+
+@section scripts
+{
+
+    <script src="js/main.js"></script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="@Url.Content("~/Scripts/jquery.webcam.js")">
+    </script>
+
+    <!-- Camera -->
+    <script>
+            $("#Camera").webcam({
+                 width: 320,
+                 height: 240,
+                 mode: "save",
+                 swffile: "@Url.Content("~/Scripts/jscam.swf")",
+                 onTick: function () { },
+                onSave: function (data, ab) {
+                    $.ajax({
+                        type: "POST",
+                        url: '~/Photo/GetCapture',
+                        data: '',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "text",
+                        success: function (r) {
+                            $("#imgCapture").css("visibility", "visible");
+                            $("#imgCapture").attr("src", r);
+                        },
+                        failure: function (response) {
+                            alert(response.d);
+                        }
+                    })
+                },
+                 onCapture: function () {
+                     webcam.save("@Url.Content("~/Photo/Capture")/");
+                 },
+                 debug: function () { },
+                 onLoad: function () { }
+             });
+    </script>
+
+
+
+
+    <!-- Video -->
+    <script>
+        var mediaSource = new MediaSource();
+
+        mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
+
+        var mediaRecorder;
+
+        var recordedBlobs;
+
+        var sourceBuffer;
+
+
+
+        var gumVideo = document.querySelector('video#gum');
+
+        var recordedVideo = document.querySelector('video#recorded');
+
+
+
+        var recordButton = document.querySelector('button#record');
+
+        var playButton = document.querySelector('button#play');
+
+        var downloadButton = document.querySelector('button#download');
+
+        recordButton.onclick = toggleRecording;
+
+        playButton.onclick = play;
+
+        downloadButton.onclick = download;
+
+
+
+        // window.isSecureContext could be used for Chrome
+
+        var isSecureOrigin = location.protocol === 'https:' ||
+
+            location.hostname === 'localhost';
+
+        if (!isSecureOrigin) {
+
+            alert('getUserMedia() must be run from a secure origin: HTTPS or localhost.' +
+
+                '\n\nChanging protocol to HTTPS');
+
+            location.protocol = 'HTTPS';
+        }
+
+
+
+        var constraints = {
+
+            audio: true,
+
+            video: true
+        };
+
+
+
+        function handleSuccess(stream) {
+
+            recordButton.disabled = false;
+
+            console.log('getUserMedia() got stream: ', stream);
+
+            window.stream = stream;
+
+            gumVideo.srcObject = stream;
+        }
+
+
+
+        function handleError(error) {
+
+            console.log('navigator.getUserMedia error: ', error);
+        }
+
+
+
+        navigator.mediaDevices.getUserMedia(constraints).
+
+            then(handleSuccess).catch(handleError);
+
+
+
+        function handleSourceOpen(event) {
+
+            console.log('MediaSource opened');
+
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+
+            console.log('Source buffer: ', sourceBuffer);
+        }
+
+
+
+        recordedVideo.addEventListener('error', function (ev) {
+
+            console.error('MediaRecording.recordedMedia.error()');
+
+            alert('Your browser can not play\n\n' + recordedVideo.src
+
+                + '\n\n media clip. event: ' + JSON.stringify(ev));
+
+        }, true);
+
+
+
+        function handleDataAvailable(event) {
+
+            if (event.data && event.data.size > 0) {
+
+                recordedBlobs.push(event.data);
+            }
+        }
+
+
+
+        function handleStop(event) {
+
+            console.log('Recorder stopped: ', event);
+        }
+
+
+
+        function toggleRecording() {
+
+            if (recordButton.textContent === 'Start Recording') {
+
+                startRecording();
+
+            } else {
+
+                stopRecording();
+
+                recordButton.textContent = 'Start Recording';
+
+                playButton.disabled = false;
+
+                downloadButton.disabled = false;
+            }
+        }
+
+
+
+        function startRecording() {
+
+            recordedBlobs = [];
+
+            var options = { mimeType: 'video/webm;codecs=vp9' };
+
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                console.log(options.mimeType + ' is not Supported');
+
+                options = { mimeType: 'video/webm;codecs=vp8' };
+
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                    console.log(options.mimeType + ' is not Supported');
+
+                    options = { mimeType: 'video/webm' };
+
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+
+                        console.log(options.mimeType + ' is not Supported');
+
+                        options = { mimeType: '' };
+                    }
+                }
+            }
+
+            try {
+
+                mediaRecorder = new MediaRecorder(window.stream, options);
+
+            } catch (e) {
+
+                console.error('Exception while creating MediaRecorder: ' + e);
+
+                alert('Exception while creating MediaRecorder: '
+
+                    + e + '. mimeType: ' + options.mimeType);
+
+                return;
+            }
+
+            console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+
+            recordButton.textContent = 'Stop Recording';
+
+            playButton.disabled = true;
+
+            downloadButton.disabled = true;
+
+            mediaRecorder.onstop = handleStop;
+
+            mediaRecorder.ondataavailable = handleDataAvailable;
+
+            mediaRecorder.start(10); // collect 10ms of data
+
+            console.log('MediaRecorder started', mediaRecorder);
+        }
+
+
+
+        function stopRecording() {
+
+            mediaRecorder.stop();
+
+            console.log('Recorded Blobs: ', recordedBlobs);
+
+            recordedVideo.controls = true;
+        }
+
+
+
+        function play() {
+
+            var superBuffer = new Blob(recordedBlobs, { type: 'video/webm' });
+
+            recordedVideo.src = window.URL.createObjectURL(superBuffer);
+
+            // workaround for non-seekable video taken from
+
+            // https://bugs.chromium.org/p/chromium/issues/detail?id=642012#c23
+
+            recordedVideo.addEventListener('loadedmetadata', function () {
+
+                if (recordedVideo.duration === Infinity) {
+
+                    recordedVideo.currentTime = 1e101;
+
+                    recordedVideo.ontimeupdate = function () {
+
+                        recordedVideo.currentTime = 0;
+
+                        recordedVideo.ontimeupdate = function () {
+
+                            delete recordedVideo.ontimeupdate;
+
+                            recordedVideo.play();
+                        };
+                    };
+                }
+
+            });
+        }
+
+
+
+        function download() {
+
+            var blob = new Blob(recordedBlobs, { type: 'video/webm' });
+
+            var url = window.URL.createObjectURL(blob);
+
+            var a = document.createElement('a');
+
+            a.style.display = 'none';
+
+            a.href = url;
+
+            a.download = 'test.webm';
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            setTimeout(function () {
+
+                document.body.removeChild(a);
+
+                window.URL.revokeObjectURL(url);
+
+            }, 100);
+
+        }
+    </script>
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+
+
+        <h4>Picture</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Image, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Image, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Image, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@*@section Scripts {
+}*@
