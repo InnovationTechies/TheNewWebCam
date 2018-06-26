@@ -42,10 +42,6 @@
     </fieldset>
 </form>
 
-
-
-<input type="submit" value="Capture" onclick="" class="btn-default btn- primary" />
-@*webcam.capture();*@
 <div class="row ">
     <button id="request" class="btn-default active btn-primary"> Request Camera </button>
 
@@ -56,15 +52,9 @@
     <button id="download" class="btn-default">Download</button>
 </div>
 
-
-
-
-
 @section scripts
 {
-
     <script src="js/main.js"></script>
-
     <script src="@Url.Content("~/Scripts/jquery.webcam.js")">
     </script>
 
@@ -99,10 +89,6 @@
                  onLoad: function () { }
              });
     </script>
-
-
-
-
     <!-- Video -->
     <script>
         var mediaSource = new MediaSource();
