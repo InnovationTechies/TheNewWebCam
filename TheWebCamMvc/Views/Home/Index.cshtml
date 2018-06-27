@@ -33,23 +33,20 @@
             </table>
 
 
-            @using (Html.BeginForm("Capture", "HomeController", FormMethod.Post, new { id = "FormId" }))
-            {
-                <input type="button" id="btnCapture" value="Capture" class="btn-default btn- primary"/>
-            }
+
 
         </div>
     </fieldset>
 </form>
 
 <div class="row ">
-    <button id="request" class="btn-default active btn-primary"> Request Camera </button>
+    <button id="request" class=" btn btn-default active btn-primary" onclick=""> Request Camera </button>
 
-    <button id="record" class="btn-default">Start Recording</button>
+    <button id="record" class="btn btn-default">Start Recording</button>
 
-    <button id="play" class="btn-default">Play</button>
+    <button id="play" class="btn btn-default">Play</button>
 
-    <button id="download" class="btn-default">Download</button>
+    <button id="download" class="btn btn-default">Download</button>
 </div>
 
 @section scripts
@@ -87,7 +84,11 @@
                  },
                  debug: function () { },
                  onLoad: function () { }
-             });
+        });
+
+        function Capture() {
+            webcam.capture();
+        }
     </script>
     <!-- Video -->
     <script>

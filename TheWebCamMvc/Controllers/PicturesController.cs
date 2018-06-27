@@ -19,6 +19,9 @@ namespace TheWebCamMvc.Controllers
         // GET: Pictures
         public ActionResult Index()
         {
+            Session["CapturedImage"] = "";
+            
+
             return View(db.Pictures.ToList());
         }
 

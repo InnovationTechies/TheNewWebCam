@@ -3,9 +3,10 @@
 @{
     ViewBag.Title = "Create";
 }
-https://www.aspsnippets.com/Articles/Capture-Image-Photo-from-Web-Camera-Webcam-in-ASPNet-MVC.aspx
+@*https://www.aspsnippets.com/Articles/Capture-Image-Photo-from-Web-Camera-Webcam-in-ASPNet-MVC.aspx*@
 
 <h2>Create</h2>
+
 
 <form id="theForm" method="get">
 
@@ -14,36 +15,33 @@ https://www.aspsnippets.com/Articles/Capture-Image-Photo-from-Web-Camera-Webcam-
         <div>
             <table border="0" cellpadding="0" cellspacing="0" class="table table-striped">
                 <tr>
-                    @*<td align="center"><u>Live Camera</u></td>
-                        <td></td>*@
+                    <td align="center"><u>Live Camera</u></td>
+                    <td></td>
                     <td align="center"><u>Captured Picture</u></td>
                     <td></td>
                     <td align="center"><u>Live Video</u></td>
-                    @*<td></td>
-                        <td align="center"><u>Recorded Video</u></td>*@
+                    <td></td>
+                    <td align="center"><u>Recorded Video</u></td>
                 </tr>
                 <tr>
-                    @*<td><div id="Camera"></div></td>
-                        <td>&nbsp;</td>*@
-                    <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
-
+                    <td><div id="Camera"></div></td>
                     <td>&nbsp;</td>
-
+                    <td><img id="imgCapture" style="visibility: hidden; width: 320px;height: 240px" /></td>
+                    <td>&nbsp;</td>
                     <td><video id="gum" autoplay></video></td>
-                    @*<td>&nbsp;</td>
-                        <td><video id="recorded" loop controls></video>*@
+                    <td>&nbsp;</td>
+                    <td><video id="recorded" loop controls></video>
                 </tr>
                 <tr>
                     <td>
                         <br />
                         <div class="form-group">
-                            <div class="col-md-offset-2 col-md-10">
+
                                 <button id="capture" class="btn btn-default active btn-primary" onclick="Capture();">Capture</button>
                                 <button id="request" class="btn btn-default active btn-default">Request Camera </button>
                                 <button id="record" class="btn btn-default">Start Recording</button>
                                 <button id="play" class="btn btn-default">Play</button>
                                 <button id="download" class="btn btn-default">Download</button>
-                            </div>
                         </div>
 
 
@@ -52,10 +50,7 @@ https://www.aspsnippets.com/Articles/Capture-Image-Photo-from-Web-Camera-Webcam-
             </table>
 
 
-            @*@using (Html.BeginForm("Capture", "HomeController", FormMethod.Post, new { id = "theForm" }))
-                {
-                    <input type="button" id="btnCapture" value="Capture" class="btn-default btn- primary" />
-                }*@
+
 
         </div>
     </fieldset>
@@ -107,39 +102,39 @@ https://www.aspsnippets.com/Articles/Capture-Image-Photo-from-Web-Camera-Webcam-
 }
 <!-- Camera -->
 <script>
-            $("#Camera").webcam({
-                 width: 320,
-                 height: 240,
-                 mode: "save",
-                 swffile: "@Url.Content("~/Scripts/jscam.swf")",
-                 onTick: function () { },
-                onSave: function (data, ab) {
-                    $.ajax({
-                        type: "POST",
-                        url: '~/Photo/GetCapture',
-                        data: '',
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "text",
-                        success: function (r) {
-                            $("#imgCapture").css("visibility", "visible");
-                            $("#imgCapture").attr("src", r);
-                        },
-                        failure: function (response) {
-                            alert(response.d);
-                        }
-                    })
-                },
-                 onCapture: function () {
-                     webcam.save("@Url.Content("~/Photo/Capture")/");
-                 },
-                 debug: function () { },
-                onLoad: function () { }
+                $("#Camera").webcam({
+                     width: 320,
+                     height: 240,
+                     mode: "save",
+                     swffile: "@Url.Content("~/Scripts/jscam.swf")",
+                     onTick: function () { },
+                    onSave: function (data, ab) {
+                        $.ajax({
+                            type: "POST",
+                            url: '~/Photo/GetCapture',
+                            data: '',
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "text",
+                            success: function (r) {
+                                $("#imgCapture").css("visibility", "visible");
+                                $("#imgCapture").attr("src", r);
+                            },
+                            failure: function (response) {
+                                alert(response.d);
+                            }
+                        })
+                    },
+                     onCapture: function () {
+                         webcam.save("@Url.Content("~/Photo/Capture")/");
+                     },
+                     debug: function () { },
+                    onLoad: function () { }
 
-        });
-        function Capture() {
-            webcam.capture()
+            });
+            function Capture() {
+                webcam.capture()
 
-        }
+            }
 </script>
 <!-- Video -->
 <script>
